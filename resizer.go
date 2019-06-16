@@ -29,6 +29,16 @@ func resizer(buf []byte, o Options) ([]byte, error) {
 	// Clone and define default options
 	o = applyDefaults(o, imageType)
 
+	image, err = process(image, imageType, o, buf)
+	if err != nil {
+		return nil, err
+	}
+
+	return saveImage(image, o)
+}
+
+func process(image *C.VipsImage, imageType ImageType, o Options, buf []byte) (*C.VipsImage, error) {
+
 	if !IsTypeSupported(o.Type) {
 		return nil, errors.New("Unsupported image output type")
 	}
@@ -125,7 +135,7 @@ func resizer(buf []byte, o Options) ([]byte, error) {
 		return nil, err
 	}
 
-	return saveImage(image, o)
+	return image, nil
 }
 
 func loadImage(buf []byte) (*C.VipsImage, ImageType, error) {
@@ -158,6 +168,8 @@ func applyDefaults(o Options, imageType ImageType) Options {
 }
 
 func saveImage(image *C.VipsImage, o Options) ([]byte, error) {
+	defer C.g_object_unref(C.gpointer(image))
+
 	saveOptions := vipsSaveOptions{
 		Quality:        o.Quality,
 		Type:           o.Type,

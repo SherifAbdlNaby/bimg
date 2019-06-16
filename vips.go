@@ -397,8 +397,6 @@ func vipsPreSave(image *C.VipsImage, o *vipsSaveOptions) (*C.VipsImage, error) {
 }
 
 func vipsSave(image *C.VipsImage, o vipsSaveOptions) ([]byte, error) {
-	defer C.g_object_unref(C.gpointer(image))
-
 	tmpImage, err := vipsPreSave(image, &o)
 	if err != nil {
 		return nil, err
@@ -702,4 +700,10 @@ func vipsDrawWatermark(image *C.VipsImage, o WatermarkImage) (*C.VipsImage, erro
 	}
 
 	return out, nil
+}
+
+func vipsCopy(src *C.VipsImage) *C.VipsImage {
+	var clone *C.VipsImage
+	C.vips_copy_bridge(src, &clone)
+	return clone
 }

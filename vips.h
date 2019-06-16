@@ -461,6 +461,11 @@ vips_gaussblur_bridge(VipsImage *in, VipsImage **out, double sigma, double min_a
 }
 
 int
+vips_copy_bridge(VipsImage *in, VipsImage **out) {
+	return vips_copy(in, out, NULL);
+}
+
+int
 vips_sharpen_bridge(VipsImage *in, VipsImage **out, int radius, double x1, double y2, double y3, double m1, double m2) {
 #if (VIPS_MAJOR_VERSION == 7 && VIPS_MINOR_VERSION < 41)
 	return vips_sharpen(in, out, radius, x1, y2, y3, m1, m2, NULL);
