@@ -29,7 +29,7 @@ func resizer(buf []byte, o Options) ([]byte, error) {
 	// Clone and define default options
 	o = applyDefaults(o, imageType)
 
-	image, err = process(image, imageType, o, buf)
+	image, err = process(image, imageType, o, &buf)
 	if err != nil {
 		return nil, err
 	}
@@ -37,7 +37,7 @@ func resizer(buf []byte, o Options) ([]byte, error) {
 	return saveImage(image, o)
 }
 
-func process(image *C.VipsImage, imageType ImageType, o Options, buf []byte) (*C.VipsImage, error) {
+func process(image *C.VipsImage, imageType ImageType, o Options, buf *[]byte) (*C.VipsImage, error) {
 
 	if !IsTypeSupported(o.Type) {
 		return nil, errors.New("Unsupported image output type")
@@ -51,7 +51,7 @@ func process(image *C.VipsImage, imageType ImageType, o Options, buf []byte) (*C
 
 	// If JPEG image, retrieve the buffer
 	if rotated && imageType == JPEG && !o.NoAutoRotate {
-		buf, err = getImageBuffer(image)
+		*buf, err = getImageBuffer(image)
 		if err != nil {
 			return nil, err
 		}
@@ -84,7 +84,7 @@ func process(image *C.VipsImage, imageType ImageType, o Options, buf []byte) (*C
 	supportsShrinkOnLoad := imageType == WEBP && VipsMajorVersion >= 8 && VipsMinorVersion >= 3
 	supportsShrinkOnLoad = supportsShrinkOnLoad || imageType == JPEG
 	if supportsShrinkOnLoad && shrink >= 2 {
-		tmpImage, factor, err := shrinkOnLoad(buf, image, imageType, factor, shrink)
+		tmpImage, factor, err := shrinkOnLoad(*buf, image, imageType, factor, shrink)
 		if err != nil {
 			return nil, err
 		}
@@ -181,6 +181,7 @@ func saveImage(image *C.VipsImage, o Options) ([]byte, error) {
 		StripMetadata:  o.StripMetadata,
 		Lossless:       o.Lossless,
 	}
+
 	// Finally get the resultant buffer
 	return vipsSave(image, saveOptions)
 }

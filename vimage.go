@@ -37,7 +37,7 @@ func (i *VipsImage) Process(o Options) error {
 	//defer C.vips_thread_shutdown()
 	o = applyDefaults(o, i.imageType)
 
-	image, err := process(i.image, i.imageType, o, i.srcBuf)
+	image, err := process(i.image, i.imageType, o, &i.srcBuf)
 	if err != nil {
 		return err
 	}
@@ -62,7 +62,12 @@ func (i *VipsImage) Save(o Options) ([]byte, error) {
 		Lossless:       o.Lossless,
 	}
 	// Finally get the resultant buffer
-	return vipsSave(i.image, saveOptions)
+	buf, err := vipsSave(i.image, saveOptions)
+	if err != nil {
+		return nil, err
+	}
+
+	return buf, nil
 }
 
 func (i *VipsImage) Clone() *VipsImage {
