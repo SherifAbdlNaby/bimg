@@ -378,6 +378,7 @@ func vipsPreSave(image *C.VipsImage, o *vipsSaveOptions) (*C.VipsImage, error) {
 		if int(err) != 0 {
 			return nil, catchVipsError()
 		}
+		C.g_object_unref(C.gpointer(image))
 		image = outImage
 	}
 
@@ -396,19 +397,12 @@ func vipsPreSave(image *C.VipsImage, o *vipsSaveOptions) (*C.VipsImage, error) {
 	return image, nil
 }
 
-func vipsSave(image *C.VipsImage, o vipsSaveOptions) ([]byte, error) {
+func vipsSave(image *C.VipsImage, o vipsSaveOptions) ([]byte, *C.VipsImage, error) {
+	var err error
+
 	tmpImage, err := vipsPreSave(image, &o)
 	if err != nil {
-		return nil, err
-	}
-
-	// When an image has an unsupported color space, vipsPreSave
-	// returns the pointer of the image passed to it unmodified.
-	// When this occurs, we must take care to not dereference the
-	// original image a second time; we may otherwise erroneously
-	// free the object twice.
-	if tmpImage != image {
-		defer C.g_object_unref(C.gpointer(tmpImage))
+		return nil, image, err
 	}
 
 	length := C.size_t(0)
@@ -419,7 +413,7 @@ func vipsSave(image *C.VipsImage, o vipsSaveOptions) ([]byte, error) {
 	lossless := C.int(boolToInt(o.Lossless))
 
 	if o.Type != 0 && !IsTypeSupportedSave(o.Type) {
-		return nil, fmt.Errorf("VIPS cannot save to %#v", ImageTypes[o.Type])
+		return nil, tmpImage, fmt.Errorf("VIPS cannot save to %#v", ImageTypes[o.Type])
 	}
 	var ptr unsafe.Pointer
 	switch o.Type {
@@ -434,7 +428,7 @@ func vipsSave(image *C.VipsImage, o vipsSaveOptions) ([]byte, error) {
 	}
 
 	if int(saveErr) != 0 {
-		return nil, catchVipsError()
+		return nil, tmpImage, catchVipsError()
 	}
 
 	buf := C.GoBytes(ptr, C.int(length))
@@ -443,7 +437,7 @@ func vipsSave(image *C.VipsImage, o vipsSaveOptions) ([]byte, error) {
 	C.g_free(C.gpointer(ptr))
 	C.vips_error_clear()
 
-	return buf, nil
+	return buf, tmpImage, nil
 }
 
 func getImageBuffer(image *C.VipsImage) ([]byte, error) {
@@ -499,8 +493,6 @@ func vipsSmartCrop(image *C.VipsImage, width, height int) (*C.VipsImage, error) 
 }
 
 func vipsTrim(image *C.VipsImage, background Color, threshold float64) (int, int, int, int, error) {
-	defer C.g_object_unref(C.gpointer(image))
-
 	top := C.int(0)
 	left := C.int(0)
 	width := C.int(0)
@@ -706,4 +698,10 @@ func vipsCopy(src *C.VipsImage) *C.VipsImage {
 	var clone *C.VipsImage
 	C.vips_copy_bridge(src, &clone)
 	return clone
+}
+
+// Used to unref in tests using vipsSave in tests (direct CGO not allowed in tests)
+func vipsUnref(image *C.VipsImage) {
+	C.g_object_unref(C.gpointer(image))
+	return
 }

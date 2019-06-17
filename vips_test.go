@@ -25,6 +25,7 @@ func TestVipsRead(t *testing.T) {
 		if imageType != file.expected {
 			t.Fatal("Invalid image type")
 		}
+		vipsUnref(image)
 	}
 }
 
@@ -35,7 +36,8 @@ func TestVipsSave(t *testing.T) {
 		image, _, _ := vipsRead(readImage("test.jpg"))
 		options := vipsSaveOptions{Quality: 95, Type: typ, StripMetadata: true}
 
-		buf, err := vipsSave(image, options)
+		buf, _, err := vipsSave(image, options)
+		vipsUnref(image)
 		if err != nil {
 			t.Fatalf("Cannot save the image as '%v'", ImageTypes[typ])
 		}
@@ -51,8 +53,8 @@ func TestVipsSaveTiff(t *testing.T) {
 	}
 	image, _, _ := vipsRead(readImage("test.jpg"))
 	options := vipsSaveOptions{Quality: 95, Type: TIFF}
-	buf, _ := vipsSave(image, options)
-
+	buf, _, _ := vipsSave(image, options)
+	vipsUnref(image)
 	if len(buf) == 0 {
 		t.Fatalf("Empty saved '%v' image", ImageTypes[TIFF])
 	}
@@ -75,7 +77,8 @@ func TestVipsRotate(t *testing.T) {
 			t.Fatal("Cannot rotate the image")
 		}
 
-		buf, _ := vipsSave(newImg, vipsSaveOptions{Quality: 95})
+		buf, _, _ := vipsSave(newImg, vipsSaveOptions{Quality: 95})
+		vipsUnref(newImg)
 		if len(buf) == 0 {
 			t.Fatal("Empty image")
 		}
@@ -90,7 +93,8 @@ func TestVipsZoom(t *testing.T) {
 		t.Fatal("Cannot save the image")
 	}
 
-	buf, _ := vipsSave(newImg, vipsSaveOptions{Quality: 95})
+	buf, _, _ := vipsSave(newImg, vipsSaveOptions{Quality: 95})
+	vipsUnref(newImg)
 	if len(buf) == 0 {
 		t.Fatal("Empty image")
 	}
@@ -114,7 +118,8 @@ func TestVipsWatermark(t *testing.T) {
 		t.Errorf("Cannot add watermark: %s", err)
 	}
 
-	buf, _ := vipsSave(newImg, vipsSaveOptions{Quality: 95})
+	buf, _, _ := vipsSave(newImg, vipsSaveOptions{Quality: 95})
+	vipsUnref(newImg)
 	if len(buf) == 0 {
 		t.Fatal("Empty image")
 	}
@@ -131,7 +136,8 @@ func TestVipsWatermarkWithImage(t *testing.T) {
 		t.Errorf("Cannot add watermark: %s", err)
 	}
 
-	buf, _ := vipsSave(newImg, vipsSaveOptions{Quality: 95})
+	buf, _, _ := vipsSave(newImg, vipsSaveOptions{Quality: 95})
+	vipsUnref(newImg)
 	if len(buf) == 0 {
 		t.Fatal("Empty image")
 	}

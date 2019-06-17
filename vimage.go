@@ -62,10 +62,12 @@ func (i *VipsImage) Save(o Options) ([]byte, error) {
 		Lossless:       o.Lossless,
 	}
 	// Finally get the resultant buffer
-	buf, err := vipsSave(i.image, saveOptions)
+	buf, image, err := vipsSave(i.image, saveOptions)
 	if err != nil {
 		return nil, err
 	}
+
+	i.image = image
 
 	return buf, nil
 }
