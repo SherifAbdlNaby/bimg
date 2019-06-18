@@ -190,6 +190,10 @@ type Sharpen struct {
 type Options struct {
 	Height         int
 	Width          int
+	MaxWidth       int
+	MaxHeight      int
+	MinWidth       int
+	MinHeight      int
 	AreaHeight     int
 	AreaWidth      int
 	Top            int

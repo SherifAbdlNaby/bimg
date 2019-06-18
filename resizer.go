@@ -198,6 +198,47 @@ func normalizeOperation(o *Options, inWidth, inHeight int) {
 	if !o.Force && !o.Crop && !o.Embed && !o.Enlarge && o.Rotate == 0 && (o.Width > 0 || o.Height > 0) {
 		o.Force = true
 	}
+
+	if o.MaxWidth > 0 && inWidth > o.MaxWidth {
+		if o.Width > 0 {
+			if o.Width > o.MaxWidth {
+				o.Width = o.MaxWidth
+			}
+		} else {
+			o.Width = o.MaxWidth
+		}
+	}
+
+	if o.MaxHeight > 0 && inHeight > o.MaxHeight {
+		if o.Height > 0 {
+			if o.Height > o.MaxHeight {
+				o.Height = o.MaxHeight
+			}
+		} else {
+			o.Height = o.MaxHeight
+		}
+	}
+
+	if o.MinWidth > 0 && inWidth < o.MinWidth {
+		if o.Width > 0 {
+			if o.Width < o.MinWidth {
+				o.Width = o.MinWidth
+			}
+		} else {
+			o.Width = o.MinWidth
+		}
+	}
+
+	if o.MinHeight > 0 && inHeight < o.MinHeight {
+		if o.Height > 0 {
+			if o.Height < o.MinHeight {
+				o.Height = o.MinHeight
+			}
+		} else {
+			o.Height = o.MinHeight
+		}
+	}
+
 }
 
 func shouldTransformImage(o Options, inWidth, inHeight int) bool {
