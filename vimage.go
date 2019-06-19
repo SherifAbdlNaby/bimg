@@ -86,3 +86,7 @@ func (i *VipsImage) Clone() *VipsImage {
 
 	return clone
 }
+
+func (i *VipsImage) GetDimensions() (width, height int) {
+	return int(i.image.Xsize), int(i.image.Ysize)
+}
